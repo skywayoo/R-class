@@ -14,3 +14,27 @@ bbmodel=svm(iris.train[,1:4],iris.train[,5],
 
 svm.result=predict(bbmodel, iris.test[,1:4], scale=F) #predict
 mean(svm.result==iris.test[,5]) 
+
+
+
+TP=FP=TN=FN=0
+
+for(i in 1:length(svm.result)){
+  if(result[i]=='L'&& ctest[i]=='L')TP=TP+1
+  if(result[i]=='L'&& ctest[i]=='M')FP=FP+1
+  if(result[i]=='M'&& ctest[i]=='L')FN=FN+1
+  if(result[i]=='M'&& ctest[i]=='M')TN=TN+1
+}
+accuracy <- (TP+TN)/length(svm.result)
+#=accuracy
+(TP+TN)/(TP+TN+FP+FN)
+
+#precision=TP / (TP + FP) 
+TP / (TP + FP) 
+#sensitivity = TP / (TP + FN) 
+TP / (TP + FN) 
+#specificity = TN / (FP + TN)
+TN / (FP + TN)
+#F-score = 2*TP /(2*TP + FP + FN) 
+2*TP /(2*TP + FP + FN) 
+
