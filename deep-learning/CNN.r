@@ -46,15 +46,6 @@ test.array <- test
 dim(test.array) <- c(28, 28, 1, ncol(test))
 
 mx.set.seed(0)
-#plot number 1000 image is 9
-textcolor <- c("#c0c0c0","#a9a9a9","#808080","#696969","#000000")
-image(test.array[,,1,1000][ncol(test.array[,,1,1000]):1,],col=textcolor,ylim = c(1:0),xlim = c(1:0))
-#plot 100~ 0-9 each 10
-par(mfrow=c(10,10),mar=c(0.1,0.1,0.1,0.1))
-for(i in seq(1,1000,by = 10)){
-textcolor <- c("#c0c0c0","#a9a9a9","#808080","#696969","#000000")
-image(test.array[,,1,i][ncol(test.array[,,1,i]):1,],col=textcolor,ylim = c(1:0),xlim = c(1:0),axes=F)
-}
 
 model <- mx.model.FeedForward.create(lenet, X=train.array, y=train.y,
                                        ctx=mx.cpu(), num.round=5, array.batch.size=100,
@@ -62,9 +53,41 @@ model <- mx.model.FeedForward.create(lenet, X=train.array, y=train.y,
                                        eval.metric=mx.metric.accuracy,
                                        epoch.end.callback=mx.callback.log.train.metric(100))
 
+#group some layers
+layers <- mx.symbol.Group(c(conv1, pool1, tanh2,pool2,lenet))
+executor <- mx.simple.bind(symbol=layers, data=dim(test.array), ctx=mx.cpu())
+#get weight, bias, outputs
+#update the parameters
+mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
+mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
+#give the data
+mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(test.array)), match.name=TRUE)
+#forward pass to get the paremeters
+mx.exec.forward(executor,is.train = F)
 
-#model visualization
+as.array(executor$outputs$convolution0_output)[,,1,1]
+
+#visualization
+
+#model
 print(graph.viz(lenet$as.json(), graph.title = "Computation graph",graph.title.font.name = "Helvetica",
                 graph.title.font.size = 100,graph.width.px = 1000, graph.height.px = 2000))
                 
-          
+#plot last image is 9
+textcolor <- c("#c0c0c0","#a9a9a9","#808080","#696969","#000000")
+image(test.array[,,1,1000][ncol(test.array[,,1,1000]):1,],col=textcolor,ylim = c(1:0),xlim = c(1:0))
+#plot 0-9 each 10
+par(mfrow=c(10,10),mar=c(0.1,0.1,0.1,0.1))
+for(i in seq(1,1000,by = 10)){
+textcolor <- c("#c0c0c0","#a9a9a9","#808080","#696969","#000000")
+image(test.array[,,1,i][ncol(test.array[,,1,i]):1,],col=textcolor,ylim = c(1:0),xlim = c(1:0),axes=F)
+}
+
+
+#plot 0-9 each 10 after 1'st convolution
+par(mfrow=c(10,10),mar=c(0.1,0.1,0.1,0.1))
+for(i in seq(1,1000,by = 10)){
+        textcolor <- c("#c0c0c0","#a9a9a9","#808080","#696969","#000000")
+        image(as.array(executor$outputs$convolution0_output)[,,1,i][ncol(as.array(executor$outputs$convolution0_output)[,,1,i]):1,],col=textcolor,ylim = c(1:0),xlim = c(1:0),axes=F)
+}
+
