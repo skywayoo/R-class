@@ -11,5 +11,5 @@ parse:https://github.com/skywayoo/Crawler/tree/master/IMDB
 2. svm
 3. random forest
 4. nerual network
-#實驗結果
+#Result
 實驗結果:https://github.com/skywayoo/R-class/tree/master/final/result
