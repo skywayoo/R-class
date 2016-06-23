@@ -3,7 +3,7 @@ dat <- read.csv(file = "imdbbbb (1).csv")
 dat$label <- as.factor(dat$label)
 library(cvTools)
 set.seed(5487)
-cvfold <- cvFolds(188,K = 5,type = "random")
+cvfold <- cvFolds(722,K = 5,type = "random")
 
 #each fold
 index_1 <- cvfold$subsets[cvfold$which==1,]
