@@ -1,7 +1,4 @@
-getwd()
-setwd("D:/Users/skywayoo/Desktop/FDC/Executable/sensor and shapelet")
 #19 variables
-dat <- read.csv(file = "FDC_data.csv")
 dat$label <- as.numeric(dat$label)
 library(cvTools)
 set.seed(5487)
