@@ -1,0 +1,68 @@
+library(mxnet)
+train = mx.io.ImageRecordIter(
+  path.imglist =  paste0("./dog/train.lst"),
+  path.imgrec     = paste0("./dog/1234.rec"),
+  batch.size      = 5,
+  data.shape      = c(256,256,3)
+)
+
+
+
+
+# Convolutional NN
+data <- mx.symbol.Variable('data')
+# first conv
+conv1 <- mx.symbol.Convolution(data=data, kernel=c(11,11), num_filter=4,stride=c(4,4))
+relu1 <- mx.symbol.Activation(data=conv1, act_type="sigmoid")
+pool1 <- mx.symbol.Pooling(data=relu1, pool_type="max",kernel=c(2,2), stride=c(4,4))
+# second conv
+conv2 <- mx.symbol.Convolution(data=pool1, kernel=c(5,5), num_filter=48,stride=c(4,4))
+relu2 <- mx.symbol.Activation(data=conv2, act_type="relu")
+pool2 <- mx.symbol.Pooling(data=relu2, pool_type="max",kernel=c(2,2), stride=c(4,4))
+# first fullc
+flatten <- mx.symbol.Flatten(data=pool2)
+fc1 <- mx.symbol.FullyConnected(data=flatten, num_hidden=100)
+relu3 <- mx.symbol.Activation(data=fc1, act_type="relu")
+# second fullc
+fc2 <- mx.symbol.FullyConnected(data=relu3, num_hidden=2)
+# loss
+lenet <- mx.symbol.SoftmaxOutput(data=fc2)
+
+#give the test
+library(imager)
+test1 = load.image("~/dog/1/fancy_pca10.jpg")
+test2 = load.image("~/dog/1/fancy_pca9.jpg")
+test1 = resize(test1,256,256)
+test2 = resize(test2,256,256)
+test1.x = as.vector(test1)
+test2.x = as.vector(test2)
+test.x = c(test1.x,test2.x)
+dim(test.x) = c(256,256,3,2)
+#group some layers
+layers <- mx.symbol.Group(c(conv1, relu1,pool1,conv2,relu2,pool2,relu2,lenet))
+executor <- mx.simple.bind(symbol=layers, data=dim(test.x), ctx=mx.cpu())
+
+mx.set.seed(0)
+model <- mx.model.FeedForward.create(lenet, X=train,
+                                     ctx=mx.cpu(), num.round=10,
+                                     learning.rate=0.05, momentum=0.9, wd=0.00001,
+                                     eval.metric=mx.metric.accuracy,array.batch.size = 5,
+                                     batch.end.callback = mx.callback.log.train.metric(2))
+
+
+
+#get weight, bias, outputs
+#update the parameters
+mx.exec.update.arg.arrays(executor, model$arg.params, match.name=TRUE)
+mx.exec.update.aux.arrays(executor, model$aux.params, match.name=TRUE)
+mx.ctx.default(mx.cpu())
+mx.exec.update.arg.arrays(executor, list(data=mx.nd.array(test.x)), match.name=TRUE)
+#forward pass to get the paremeters
+mx.exec.forward(executor,is.train = F)
+
+#plot 0-9 each 10 after 1'st convolution
+par(mfrow=c(2,4),mar=c(0.1,0.1,0.1,0.1))
+for(i in 1:4){
+  plot(as.cimg(as.array(executor$outputs$pooling6_output)[,,4,1]),axes=F,main=paste(i))
+}
+
