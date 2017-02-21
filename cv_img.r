@@ -1,6 +1,6 @@
 
 
-cv_img = function(vfold,data,label){
+cv_img = function("vfold" = vfold,"image list" = data,"image label" = label){
   require(cvTools)
   train_cvfold_data = list()
   train_cvfold_label = list()
@@ -57,8 +57,3 @@ cv_img = function(vfold,data,label){
          )
 }
 
-
-res = cv_img(5,data,label)
-dim(res$`training data`[[1]])
-dim(res$`eval data`[[1]])
-res$`cvfold index`
