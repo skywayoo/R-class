@@ -1,14 +1,13 @@
 
 
-cv_img = function("vfold" = vfold,"image list" = data,"image label" = label){
+cv_img = function(vfold,data,label){
   require(cvTools)
   train_cvfold_data = list()
   train_cvfold_label = list()
   eval_cvfold_data = list()
   eval_cvfold_label = list()
   set.seed(7777)
-  for(y in 1:length(levels(label))){
-    cv__all_idx = list()
+  cv__all_idx = list()
     for(y in 1:length(levels(label))){
       if(y==1){
         cv__all = cvFolds(length(which(label==levels(label)[y])),K=vfold)
@@ -31,7 +30,6 @@ cv_img = function("vfold" = vfold,"image list" = data,"image label" = label){
         }
       }
     }
-  }
   for(v in 1:vfold){
     img_h= dim(data[[1]])[2]
     img_w= dim(data[[1]])[1]
@@ -54,6 +52,6 @@ cv_img = function("vfold" = vfold,"image list" = data,"image label" = label){
               "eval data"=eval_cvfold_data,
               "eval label"=eval_cvfold_label,
               "cvfold index" = cv__all_idx)
-         )
+  )
 }
 
